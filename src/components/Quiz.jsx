@@ -10,10 +10,20 @@ const Quiz = () => {
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState(null);
   const [questionResults, setQuestionResults] = useState([]);
+  const [currentAnswer, setCurrentAnswer] = useState('');
 
   const handleNextQuestion = useCallback(async () => {
+    // Auto-save the current answer if it exists and hasn't been saved yet
+    if (currentAnswer) {
+      setAnswers(prev => ({
+        ...prev,
+        [currentQuestion]: currentAnswer
+      }));
+      setCurrentAnswer(''); // Reset current answer after saving
+    }
+
     const currentQuestionData = quizData.questions[currentQuestion];
-    const userAnswer = answers[currentQuestion];
+    const userAnswer = currentAnswer || answers[currentQuestion];
     const isCorrect = userAnswer?.toString() === currentQuestionData.correctAnswer.toString();
     
     setQuestionResults(prev => [...prev, {
@@ -41,7 +51,7 @@ const Quiz = () => {
       setTimeLeft(30);
       setFeedback(null);
     }
-  }, [currentQuestion, answers, timeLeft]);
+  }, [currentQuestion, answers, timeLeft, currentAnswer]);
 
   useEffect(() => {
     let timer;
@@ -56,20 +66,30 @@ const Quiz = () => {
   }, [timeLeft, quizCompleted, handleNextQuestion]);
 
   const handleAnswer = (value) => {
+    setCurrentAnswer(value);
+  };
+
+  const handleSaveAnswer = () => {
+    if (!currentAnswer) {
+      return;
+    }
+
     const currentQuestionData = quizData.questions[currentQuestion];
-    const isCorrect = value.toString() === currentQuestionData.correctAnswer.toString();
+    const isCorrect = currentAnswer.toString() === currentQuestionData.correctAnswer.toString();
     
     setAnswers(prev => ({
       ...prev,
-      [currentQuestion]: value
+      [currentQuestion]: currentAnswer
     }));
 
-    // Show instant feedback
+    // Show feedback only when explicitly saving
     setFeedback({
       isCorrect,
       message: isCorrect ? "Correct! ✅" : "Incorrect ❌",
       correctAnswer: currentQuestionData.correctAnswer
     });
+
+    setCurrentAnswer('');
   };
 
   const renderQuestion = () => {
@@ -101,14 +121,14 @@ const Quiz = () => {
               <label 
                 key={index} 
                 className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors
-                  ${answers[currentQuestion] === String.fromCharCode(65 + index) 
+                  ${currentAnswer === String.fromCharCode(65 + index) 
                     ? 'bg-blue-100 border-blue-500' 
                     : 'hover:bg-gray-50'}`}
               >
                 <input
                   type="radio"
                   value={String.fromCharCode(65 + index)}
-                  checked={answers[currentQuestion] === String.fromCharCode(65 + index)}
+                  checked={currentAnswer === String.fromCharCode(65 + index)}
                   onChange={(e) => handleAnswer(e.target.value)}
                   className="mr-3"
                 />
@@ -119,7 +139,7 @@ const Quiz = () => {
         ) : (
           <input
             type="number"
-            value={answers[currentQuestion] || ''}
+            value={currentAnswer}
             onChange={(e) => handleAnswer(parseInt(e.target.value))}
             className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter your answer..."
@@ -205,7 +225,7 @@ const Quiz = () => {
 
           {renderQuestion()}
 
-          <div className="mt-6 flex justify-between">
+          <div className="mt-6 flex justify-between gap-4">
             <button
               disabled={currentQuestion === 0}
               onClick={() => {
@@ -218,12 +238,24 @@ const Quiz = () => {
               Previous
             </button>
             
-            <button
-              onClick={handleNextQuestion}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              {currentQuestion === quizData.questions.length - 1 ? 'Submit' : 'Next'}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleSaveAnswer}
+                disabled={!currentAnswer}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg 
+                         hover:bg-blue-700 transition-colors disabled:opacity-50 
+                         disabled:cursor-not-allowed"
+              >
+                Save Answer
+              </button>
+              
+              <button
+                onClick={handleNextQuestion}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                {currentQuestion === quizData.questions.length - 1 ? 'Submit' : 'Next'}
+              </button>
+            </div>
           </div>
         </div>
       ) : (
