@@ -41,7 +41,7 @@ A modern, interactive quiz application built with React that allows users to tes
   - Smooth transitions and animations
 
 ## 🚀 Live Demo
-[View Live Demo](your-deployed-url-here)
+[View Live Demo] : https://kuldeep-quiz-platform.netlify.app/
 
 ## 🛠️ Installation & Setup
 
@@ -52,7 +52,7 @@ A modern, interactive quiz application built with React that allows users to tes
 ### Local Setup
 1. Clone the repository
    ```bash
-   git clone https://github.com/your-username/quiz-platform.git
+   git clone https://github.com/Kuldeepkushwah06/quiz-platform.git
    cd quiz-platform
    ```
 
